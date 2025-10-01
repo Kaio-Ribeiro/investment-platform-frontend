@@ -6,13 +6,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
 import { Eye, EyeOff, UserPlus, Loader2, Check } from 'lucide-react';
-import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { authService } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { useRedirectIfAuthenticated } from '../../hooks/useAuth';
+import { AuthLoadingScreen } from '@/components/ui/loading';
 
 const registerSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -26,9 +27,12 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
+  const { register, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if already authenticated
+  const { shouldShow } = useRedirectIfAuthenticated();
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -41,38 +45,10 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      setIsLoading(true);
-      
-      const registerData = {
-        email: data.email,
-        password: data.password,
-      };
-      
-      const response = await authService.register(registerData);
-      
-      // Simular salvamento do token (em uma implementação real, usaria context/state management)
-      localStorage.setItem('access_token', response.access_token);
-      
-      toast.success('Cadastro realizado com sucesso!');
-      
-      // Redirecionar para dashboard
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 1000);
-      
-    } catch (error: unknown) {
-      console.error('Register error:', error);
-      
-      let errorMessage = 'Erro ao criar conta. Tente novamente.';
-      
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: { detail?: string } } };
-        errorMessage = axiosError.response?.data?.detail || errorMessage;
-      }
-      
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
+      await register(data.email, data.password);
+    } catch (error) {
+      // Error handling is done in the auth context
+      console.error('Register failed:', error);
     }
   };
 
@@ -88,6 +64,11 @@ export default function RegisterPage() {
   };
 
   const passwordStrength = getPasswordStrength(form.watch('password') || '');
+
+  // Show loading screen while checking authentication
+  if (!shouldShow) {
+    return <AuthLoadingScreen text="Verificando autenticação..." />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 p-4">

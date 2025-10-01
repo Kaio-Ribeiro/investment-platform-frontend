@@ -6,13 +6,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
 import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { authService } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { useRedirectIfAuthenticated } from '../../hooks/useAuth';
+import { AuthLoadingScreen } from '@/components/ui/loading';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -22,8 +23,11 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
+  const { login, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  
+  // Redirect if already authenticated
+  const { shouldShow } = useRedirectIfAuthenticated();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -35,34 +39,17 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      setIsLoading(true);
-      const response = await authService.login(data);
-      
-      // Simular salvamento do token (em uma implementação real, usaria context/state management)
-      localStorage.setItem('access_token', response.access_token);
-      
-      toast.success('Login realizado com sucesso!');
-      
-      // Redirecionar para dashboard (temporariamente vamos apenas mostrar uma mensagem)
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 1000);
-      
-    } catch (error: unknown) {
-      console.error('Login error:', error);
-      
-      let errorMessage = 'Erro ao fazer login. Verifique suas credenciais.';
-      
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: { detail?: string } } };
-        errorMessage = axiosError.response?.data?.detail || errorMessage;
-      }
-      
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
+      await login(data.email, data.password);
+    } catch (error) {
+      // Error handling is done in the auth context
+      console.error('Login failed:', error);
     }
   };
+
+  // Show loading screen while checking authentication
+  if (!shouldShow) {
+    return <AuthLoadingScreen text="Verificando autenticação..." />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
