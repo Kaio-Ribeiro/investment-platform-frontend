@@ -72,9 +72,11 @@ export default function DashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" disabled>
-                Em desenvolvimento
-              </Button>
+              <Link href="/clients">
+                <Button className="w-full">
+                  Gerenciar Clientes
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
