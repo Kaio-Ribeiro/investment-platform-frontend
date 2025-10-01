@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -69,15 +70,17 @@ export default function Home() {
 
         <div className="text-center mt-16">
           <div className="space-x-4">
-            <Button size="lg" disabled>
-              Login (Em breve)
-            </Button>
+            <Link href="/login">
+              <Button size="lg">
+                Fazer Login
+              </Button>
+            </Link>
             <Button variant="outline" size="lg" disabled>
               Cadastro (Em breve)
             </Button>
           </div>
           <p className="text-sm text-gray-500 mt-4">
-            Funcionalidades em desenvolvimento
+            Teste o sistema de login
           </p>
         </div>
       </div>
