@@ -75,12 +75,14 @@ export default function Home() {
                 Fazer Login
               </Button>
             </Link>
-            <Button variant="outline" size="lg" disabled>
-              Cadastro (Em breve)
-            </Button>
+            <Link href="/register">
+              <Button variant="outline" size="lg">
+                Criar Conta
+              </Button>
+            </Link>
           </div>
           <p className="text-sm text-gray-500 mt-4">
-            Teste o sistema de login
+            Teste o sistema de autenticação
           </p>
         </div>
       </div>

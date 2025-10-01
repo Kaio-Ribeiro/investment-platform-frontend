@@ -159,7 +159,7 @@ export default function LoginPage() {
             </span>
             <Link 
               href="/register" 
-              className="text-blue-600 hover:text-blue-500 font-medium"
+              className="text-green-600 hover:text-green-500 font-medium"
             >
               Cadastre-se aqui
             </Link>
