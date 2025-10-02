@@ -6,7 +6,8 @@ import type {
   ClientListResponse,
   ClientFilters,
   ClientSortOptions,
-  ClientStats
+  ClientStats,
+  ClientWithAssets
 } from '../types/client';
 
 export const clientService = {
@@ -152,7 +153,12 @@ export const clientService = {
 
 // Mock data for development (remove when backend is ready)
 export const mockClientService = {
-  async getClients(): Promise<ClientListResponse> {
+  async getClients(
+    filters?: ClientFilters,
+    sortBy?: { field: string; direction: 'asc' | 'desc' },
+    page: number = 1,
+    limit: number = 10
+  ): Promise<ClientListResponse> {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
@@ -231,19 +237,18 @@ export const mockClientService = {
     ];
 
     return {
-      clients: mockClients,
+      items: mockClients,
       total: mockClients.length,
-      page: 1,
-      limit: 10,
-      totalPages: 1,
+      page: page,
+      totalPages: Math.ceil(mockClients.length / limit),
     };
   },
 
   async getClient(id: string): Promise<Client> {
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    const clients = await this.getClients();
-    const client = clients.clients.find(c => c.id === id);
+    const clientsResponse = await this.getClients();
+    const client = clientsResponse.items.find(c => c.id === id);
     
     if (!client) {
       throw new Error('Cliente não encontrado');
@@ -262,5 +267,80 @@ export const mockClientService = {
       totalInvestments: 12,
       averagePortfolioValue: 100000,
     };
+  },
+
+  async createClient(client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<Client> {
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    const newClient: Client = {
+      ...client,
+      id: Date.now().toString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    return newClient;
+  },
+
+  async updateClient(id: string, updates: Partial<Client>): Promise<Client> {
+    await new Promise(resolve => setTimeout(resolve, 600));
+    
+    const existingClient = await this.getClient(id);
+    const updatedClient: Client = {
+      ...existingClient,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    return updatedClient;
+  },
+
+  async deleteClient(id: string): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 400));
+    // In a real implementation, this would delete the client
+    console.log(`Mock: Deleted client ${id}`);
+  },
+
+  async getClientWithAssets(id: string): Promise<ClientWithAssets> {
+    await new Promise(resolve => setTimeout(resolve, 700));
+    
+    const client = await this.getClient(id);
+    
+    // Mock asset allocations
+    const clientWithAssets: ClientWithAssets = {
+      ...client,
+      totalInvested: 50000,
+      currentValue: 55000,
+      totalReturn: 5000,
+      returnPercentage: 10.0,
+      allocations: [
+        {
+          assetId: 'ITUB4',
+          assetName: 'Itaú Unibanco PN',
+          assetType: 'Ação',
+          quantity: 100,
+          averagePrice: 25.50,
+          currentPrice: 28.00,
+          totalInvested: 2550,
+          currentValue: 2800,
+          returnAmount: 250,
+          returnPercentage: 9.8,
+        },
+        {
+          assetId: 'HGLG11',
+          assetName: 'CSHG Logística FII',
+          assetType: 'FII',
+          quantity: 200,
+          averagePrice: 125.00,
+          currentPrice: 135.00,
+          totalInvested: 25000,
+          currentValue: 27000,
+          returnAmount: 2000,
+          returnPercentage: 8.0,
+        },
+      ],
+    };
+    
+    return clientWithAssets;
   },
 };

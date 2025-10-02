@@ -84,10 +84,9 @@ export interface UpdateClientRequest extends Partial<CreateClientRequest> {
 
 // API Response types
 export interface ClientListResponse {
-  clients: Client[];
+  items: Client[];
   total: number;
   page: number;
-  limit: number;
   totalPages: number;
 }
 
@@ -116,4 +115,24 @@ export interface ClientStats {
   prospects: number;
   totalInvestments: number;
   averagePortfolioValue: number;
+}
+
+// Client with assets relationship
+export interface ClientWithAssets extends Client {
+  totalInvested: number;
+  currentValue: number;
+  totalReturn: number;
+  returnPercentage: number;
+  allocations: Array<{
+    assetId: string;
+    assetName: string;
+    assetType: string;
+    quantity: number;
+    averagePrice: number;
+    currentPrice: number;
+    totalInvested: number;
+    currentValue: number;
+    returnAmount: number;
+    returnPercentage: number;
+  }>;
 }

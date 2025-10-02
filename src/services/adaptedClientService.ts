@@ -30,8 +30,8 @@ class RealClientService implements ClientService {
     });
 
     if (filters?.search) params.append('search', filters.search);
-    if (filters?.type) params.append('type', filters.type);
     if (filters?.status) params.append('status', filters.status);
+    if (filters?.investmentProfile) params.append('investment_profile', filters.investmentProfile);
     if (sortBy) {
       params.append('sort_by', sortBy.field);
       params.append('sort_direction', sortBy.direction);
