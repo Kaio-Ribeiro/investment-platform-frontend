@@ -88,9 +88,11 @@ export default function DashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" disabled>
-                Em desenvolvimento
-              </Button>
+              <Link href="/assets">
+                <Button className="w-full">
+                  Gerenciar Ativos
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
