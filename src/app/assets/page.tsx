@@ -228,9 +228,11 @@ export default function AssetsPage() {
                     </div>
 
                     <div className="flex items-center space-x-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="w-4 h-4" />
-                      </Button>
+                      <Link href={`/assets/${asset.id}`}>
+                        <Button variant="outline" size="sm">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </Link>
                       <Link href={`/assets/new?assetId=${asset.id}`}>
                         <Button size="sm">
                           Investir

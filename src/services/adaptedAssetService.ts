@@ -4,9 +4,10 @@ import type { Asset } from '../types/investment';
 export interface AssetService {
   getAssets: () => Promise<Asset[]>;
   getAsset: (id: string) => Promise<Asset>;
+  getAssetById: (id: number) => Promise<any>;
   createAsset: (asset: Omit<Asset, 'id' | 'createdAt' | 'updatedAt' | 'lastUpdate'>) => Promise<Asset>;
   updateAsset: (id: string, asset: Partial<Omit<Asset, 'id' | 'createdAt' | 'updatedAt' | 'lastUpdate'>>) => Promise<Asset>;
-  deleteAsset: (id: string) => Promise<void>;
+  deleteAsset: (id: number) => Promise<void>;
   searchYahooAsset: (symbol: string) => Promise<any>;
   createAssetFromYahoo: (symbol: string) => Promise<Asset>;
 }
@@ -78,6 +79,24 @@ class RealAssetService implements AssetService {
     };
   }
 
+  async getAssetById(id: number): Promise<any> {
+    const backendAsset = await apiClient.get<any>(`/assets/${id}`);
+    
+    return {
+      id: backendAsset.id,
+      ticker: backendAsset.ticker,
+      name: backendAsset.name,
+      exchange: backendAsset.exchange,
+      currency: backendAsset.currency,
+      currentPrice: backendAsset.current_price,
+      dividendYield: backendAsset.dividend_yield,
+      sector: backendAsset.sector,
+      marketCap: backendAsset.market_cap,
+      type: backendAsset.type,
+      lastUpdate: new Date(),
+    };
+  }
+
   async updateAsset(id: string, asset: Partial<Omit<Asset, 'id' | 'createdAt' | 'updatedAt' | 'lastUpdate'>>): Promise<Asset> {
     // Convert frontend format to backend format
     const backendData: any = {};
@@ -104,7 +123,7 @@ class RealAssetService implements AssetService {
     };
   }
 
-  async deleteAsset(id: string): Promise<void> {
+  async deleteAsset(id: number): Promise<void> {
     return apiClient.delete<void>(`/assets/${id}`);
   }
 
@@ -134,3 +153,6 @@ class RealAssetService implements AssetService {
 
 // Export the real service
 export const assetService = new RealAssetService();
+
+// Export as adaptedAssetService for compatibility
+export const adaptedAssetService = new RealAssetService();
