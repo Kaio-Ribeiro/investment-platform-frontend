@@ -136,15 +136,30 @@ export type ClientFiltersData = z.infer<typeof clientFiltersSchema>;
 // Utility functions
 export const formatCPF = (cpf: string): string => {
   const clean = cpf.replace(/\D/g, '');
-  return clean.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  
+  // Limita a 11 dígitos
+  if (clean.length > 11) {
+    return formatCPF(clean.substring(0, 11));
+  }
+  
+  if (clean.length <= 3) return clean;
+  if (clean.length <= 6) return clean.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+  if (clean.length <= 9) return clean.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+  return clean.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
 };
 
 export const formatPhone = (phone: string): string => {
   const clean = phone.replace(/\D/g, '');
-  if (clean.length === 11) {
-    return clean.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  
+  // Limita a 11 dígitos
+  if (clean.length > 11) {
+    return formatPhone(clean.substring(0, 11));
   }
-  return clean.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+  
+  if (clean.length <= 2) return clean;
+  if (clean.length <= 6) return clean.replace(/(\d{2})(\d{1,4})/, '($1) $2');
+  if (clean.length <= 10) return clean.replace(/(\d{2})(\d{4})(\d{1,4})/, '($1) $2-$3');
+  return clean.replace(/(\d{2})(\d{5})(\d{1,4})/, '($1) $2-$3');
 };
 
 export const formatCEP = (cep: string): string => {

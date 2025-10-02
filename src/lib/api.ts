@@ -27,22 +27,59 @@ class ApiClient {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
-    const defaultHeaders = {
+    // Construir headers dinamicamente
+    const headers: HeadersInit = {
       'Content-Type': 'application/json',
+      ...options.headers,
     };
+
+    // Adicionar token de autenticação se disponível
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+      }
+    }
 
     const config: RequestInit = {
       ...options,
-      headers: {
-        ...defaultHeaders,
-        ...options.headers,
-      },
+      headers,
     };
 
     try {
       const response = await fetch(url, config);
       
       if (!response.ok) {
+        // Tratamento específico para erro 403 Forbidden
+        if (response.status === 403) {
+          console.error('Access forbidden - check authentication');
+          // Remover token inválido
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('access_token');
+            // Redirecionar para login se não estivermos em páginas públicas
+            const currentPath = window.location.pathname;
+            const publicPaths = ['/', '/login', '/register'];
+            
+            if (!publicPaths.includes(currentPath)) {
+              window.location.href = '/login';
+            }
+          }
+        }
+        
+        // Tratamento específico para erro 401 Unauthorized
+        if (response.status === 401) {
+          console.error('Unauthorized - token expired or invalid');
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('access_token');
+            const currentPath = window.location.pathname;
+            const publicPaths = ['/', '/login', '/register'];
+            
+            if (!publicPaths.includes(currentPath)) {
+              window.location.href = '/login';
+            }
+          }
+        }
+
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
       }
