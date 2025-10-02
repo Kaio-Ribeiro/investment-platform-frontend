@@ -19,29 +19,22 @@ import {
   BarChart3,
   Eye
 } from 'lucide-react';
-import { mockAssetService } from '../../services/assetService';
+import { assetService } from '../../services/adaptedAssetService';
 import { assetTypeLabels, formatCurrency, formatPercentage } from '../../schemas/investment';
-import type { Asset, PortfolioSummary } from '../../types/investment';
+import type { Asset } from '../../types/investment';
 
 export default function AssetsPage() {
   const { isLoading: authLoading } = useRequireAuth();
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [portfolioSummary, setPortfolioSummary] = useState<PortfolioSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'assets' | 'portfolio'>('portfolio');
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const [assetsData, portfolioData] = await Promise.all([
-          mockAssetService.getAssets(),
-          mockAssetService.getPortfolioSummary('1') // Mock client ID
-        ]);
-        
-        setAssets(assetsData.assets);
-        setPortfolioSummary(portfolioData);
+        const assetsData = await assetService.getAssets();
+        setAssets(assetsData);
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
       } finally {
@@ -70,17 +63,11 @@ export default function AssetsPage() {
     );
   };
 
-  const getProfitLossColor = (value: number) => {
-    if (value > 0) return 'text-green-600';
-    if (value < 0) return 'text-red-600';
-    return 'text-gray-600';
-  };
-
-  const getProfitLossIcon = (value: number) => {
-    if (value > 0) return <TrendingUp className="w-4 h-4" />;
-    if (value < 0) return <TrendingDown className="w-4 h-4" />;
-    return null;
-  };
+  const filteredAssets = assets.filter(asset =>
+    asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    asset.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    asset.type.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (authLoading || isLoading) {
     return <AuthLoadingScreen text="Carregando ativos..." />;
@@ -94,112 +81,80 @@ export default function AssetsPage() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Alocação de Ativos
+                Gestão de Ativos
               </h1>
               <p className="text-gray-600 mt-2">
-                Gerencie investimentos e alocações de ativos dos clientes
+                Gerencie os ativos disponíveis para investimentos
               </p>
             </div>
             <Link href="/assets/new">
               <Button className="flex items-center space-x-2">
                 <Plus className="w-4 h-4" />
-                <span>Novo Investimento</span>
+                <span>Novo Ativo</span>
               </Button>
             </Link>
           </div>
         </div>
 
-        {/* Portfolio Summary Cards */}
-        {portfolioSummary && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatCurrency(portfolioSummary.totalPortfolioValue)}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Patrimônio total investido
-                </p>
-              </CardContent>
-            </Card>
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Ativos</CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{assets.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Ativos cadastrados
+              </p>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Valor Investido</CardTitle>
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatCurrency(portfolioSummary.totalInvested)}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Aporte total realizado
-                </p>
-              </CardContent>
-            </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Ações</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {assets.filter(a => a.type === 'stocks').length}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Ações disponíveis
+              </p>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Lucro/Prejuízo</CardTitle>
-                {getProfitLossIcon(portfolioSummary.totalProfitLoss)}
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${getProfitLossColor(portfolioSummary.totalProfitLoss)}`}>
-                  {formatCurrency(portfolioSummary.totalProfitLoss)}
-                </div>
-                <p className={`text-xs ${getProfitLossColor(portfolioSummary.totalProfitLoss)}`}>
-                  {formatPercentage(portfolioSummary.totalProfitLossPercentage)}
-                </p>
-              </CardContent>
-            </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Moedas</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {new Set(assets.map(a => a.currency)).size}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Moedas diferentes
+              </p>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Diversificação</CardTitle>
-                <PieChart className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {Object.keys(portfolioSummary.assetAllocation).length}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Tipos de ativos
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Tabs */}
-        <div className="mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab('portfolio')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'portfolio'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Portfolio
-              </button>
-              <button
-                onClick={() => setActiveTab('assets')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'assets'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Ativos Disponíveis
-              </button>
-            </nav>
-          </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Tipos</CardTitle>
+              <PieChart className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {new Set(assets.map(a => a.type)).size}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Tipos de ativos
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Search */}
@@ -225,144 +180,79 @@ export default function AssetsPage() {
           </CardContent>
         </Card>
 
-        {/* Content based on active tab */}
-        {activeTab === 'portfolio' && portfolioSummary && (
-          <div className="space-y-6">
-            {/* Allocation Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Alocação por Tipo de Ativo</CardTitle>
-                <CardDescription>
-                  Distribuição do patrimônio por categoria de investimento
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {Object.entries(portfolioSummary.assetAllocation).map(([type, allocation]) => (
-                    <div key={type} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div 
-                          className="w-4 h-4 rounded"
-                          style={{ backgroundColor: allocation.color }}
-                        />
-                        <span className="font-medium">{allocation.name}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium">{formatCurrency(allocation.value)}</div>
-                        <div className="text-sm text-gray-500">{formatPercentage(allocation.percentage)}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Top Performers */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Melhores Performances</CardTitle>
-                <CardDescription>
-                  Investimentos com melhor desempenho
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {portfolioSummary.topPerformers.map((performer, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">{performer.assetName}</h4>
-                        <p className="text-sm text-gray-500">{performer.symbol}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium">{formatCurrency(performer.currentValue)}</div>
-                        <div className={`text-sm flex items-center space-x-1 ${getProfitLossColor(performer.profitLossPercentage)}`}>
-                          {getProfitLossIcon(performer.profitLossPercentage)}
-                          <span>{formatPercentage(performer.profitLossPercentage)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
         {/* Assets List */}
-        {activeTab === 'assets' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Ativos Disponíveis</CardTitle>
-              <CardDescription>
-                {assets.length} ativo{assets.length !== 1 ? 's' : ''} disponível{assets.length !== 1 ? 'eis' : ''} para investimento
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {assets.map((asset) => (
-                  <div
-                    key={asset.id}
-                    className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-4 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {asset.symbol}
-                          </h3>
-                          {getAssetTypeBadge(asset.type)}
-                          {asset.sector && (
-                            <Badge variant="outline" className="text-xs">
-                              {asset.sector}
-                            </Badge>
-                          )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Ativos Disponíveis</CardTitle>
+            <CardDescription>
+              {filteredAssets.length} ativo{filteredAssets.length !== 1 ? 's' : ''} disponível{filteredAssets.length !== 1 ? 'eis' : ''} para investimento
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {filteredAssets.map((asset) => (
+                <div
+                  key={asset.id}
+                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-4 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {asset.symbol}
+                        </h3>
+                        {getAssetTypeBadge(asset.type)}
+                        {asset.sector && (
+                          <Badge variant="outline" className="text-xs">
+                            {asset.sector}
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <p className="text-gray-600 mb-2">{asset.name}</p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                        <div>
+                          <p><span className="font-medium">Preço:</span> {asset.currentPrice ? formatCurrency(asset.currentPrice) : 'N/A'}</p>
+                          <p><span className="font-medium">Moeda:</span> {asset.currency}</p>
                         </div>
-                        
-                        <p className="text-gray-600 mb-2">{asset.name}</p>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                          <div>
-                            <p><span className="font-medium">Preço:</span> {asset.currentPrice ? formatCurrency(asset.currentPrice) : 'N/A'}</p>
-                            <p><span className="font-medium">Moeda:</span> {asset.currency}</p>
-                          </div>
-                          <div>
-                            <p><span className="font-medium">Dividend Yield:</span> {asset.dividendYield ? formatPercentage(asset.dividendYield) : 'N/A'}</p>
-                            <p><span className="font-medium">Gestor:</span> {asset.manager || 'N/A'}</p>
-                          </div>
-                          <div>
-                            <p><span className="font-medium">Valor de Mercado:</span> {asset.marketCap ? formatCurrency(asset.marketCap) : 'N/A'}</p>
-                            <p><span className="font-medium">Atualizado:</span> {asset.lastUpdate.toLocaleDateString('pt-BR')}</p>
-                          </div>
+                        <div>
+                          <p><span className="font-medium">Dividend Yield:</span> {asset.dividendYield ? formatPercentage(asset.dividendYield) : 'N/A'}</p>
+                          <p><span className="font-medium">Setor:</span> {asset.sector || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p><span className="font-medium">Valor de Mercado:</span> {asset.marketCap ? formatCurrency(asset.marketCap) : 'N/A'}</p>
+                          <p><span className="font-medium">Atualizado:</span> {asset.lastUpdate.toLocaleDateString('pt-BR')}</p>
                         </div>
                       </div>
+                    </div>
 
-                      <div className="flex items-center space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="w-4 h-4" />
+                    <div className="flex items-center space-x-2">
+                      <Button variant="outline" size="sm">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Link href={`/assets/new?assetId=${asset.id}`}>
+                        <Button size="sm">
+                          Investir
                         </Button>
-                        <Link href={`/assets/new?assetId=${asset.id}`}>
-                          <Button size="sm">
-                            Investir
-                          </Button>
-                        </Link>
-                      </div>
+                      </Link>
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {assets.length === 0 && (
-                <div className="text-center py-12">
-                  <BarChart3 className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum ativo encontrado</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Adicione novos ativos ao sistema para começar a investir.
-                  </p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+              ))}
+            </div>
+
+            {filteredAssets.length === 0 && (
+              <div className="text-center py-12">
+                <BarChart3 className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum ativo encontrado</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {searchTerm ? 'Tente ajustar sua busca.' : 'Adicione novos ativos ao sistema para começar a investir.'}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
