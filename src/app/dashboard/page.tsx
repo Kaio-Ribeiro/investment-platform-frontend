@@ -103,10 +103,17 @@ export default function DashboardPage() {
                 Acompanhe entradas e saídas de capital
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Button className="w-full" disabled>
-                Em desenvolvimento
-              </Button>
+            <CardContent className="space-y-2">
+              <Link href="/movements">
+                <Button className="w-full">
+                  Gerenciar Movimentações
+                </Button>
+              </Link>
+              <Link href="/movements/analytics">
+                <Button variant="outline" className="w-full">
+                  Analytics de Cash Flow
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>
