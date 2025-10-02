@@ -27,32 +27,86 @@ export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [stats, setStats] = useState<ClientStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Force refresh function (can be called from other components)
+  const refreshClientList = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  // Listen for page visibility changes to refresh data
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshClientList();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
+        setError(null);
+        
         const clientsData = await clientService.getClients(
-          { search: searchTerm }, 
+          { search: debouncedSearchTerm || undefined }, // Only send if not empty
           { field: 'name', direction: 'asc' },
           1,
           10
         );
         
-        // Mock stats for now
-        const mockStats: ClientStats = {
-          total: clientsData.total,
-          active: Math.floor(clientsData.total * 0.8),
-          prospects: Math.floor(clientsData.total * 0.2),
-          totalInvestments: 50000000,
-          averagePortfolioValue: clientsData.total > 0 ? 50000000 / clientsData.total : 0
-        };
-        
-        setClients(clientsData.items);
-        setStats(mockStats);
+        // Verificar se os dados são válidos
+        if (clientsData && Array.isArray(clientsData.items)) {
+          setClients(clientsData.items);
+          
+          // Mock stats for now
+          const mockStats: ClientStats = {
+            total: clientsData.total || 0,
+            active: Math.floor((clientsData.total || 0) * 0.8),
+            prospects: Math.floor((clientsData.total || 0) * 0.2),
+            totalInvestments: 50000000,
+            averagePortfolioValue: (clientsData.total || 0) > 0 ? 50000000 / (clientsData.total || 0) : 0
+          };
+          
+          setStats(mockStats);
+        } else {
+          // Se não temos dados válidos, usar dados mock
+          setClients([]);
+          setStats(null);
+        }
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
+        // Garantir que clients seja sempre um array
+        setClients([]);
+        setStats(null);
+        
+        // Definir mensagem de erro baseada no tipo
+        if (error instanceof Error) {
+          if (error.message.includes('403') || error.message.includes('Forbidden')) {
+            setError('Acesso negado. Verifique se você está logado corretamente.');
+          } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+            setError('Sessão expirada. Faça login novamente.');
+          } else {
+            setError(`Erro ao carregar clientes: ${error.message}`);
+          }
+        } else {
+          setError('Erro desconhecido ao carregar clientes');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -61,7 +115,7 @@ export default function ClientsPage() {
     if (!authLoading) {
       loadData();
     }
-  }, [authLoading]);
+  }, [authLoading, debouncedSearchTerm, refreshTrigger]); // React to debounced search and refresh trigger
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -224,17 +278,41 @@ export default function ClientsPage() {
           </CardContent>
         </Card>
 
+        {/* Error Message */}
+        {error && (
+          <Card className="mb-6 border-red-200 bg-red-50">
+            <CardContent className="pt-6">
+              <div className="flex items-center space-x-2 text-red-700">
+                <div className="rounded-full bg-red-100 p-1">
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium">{error}</p>
+              </div>
+              <div className="mt-2">
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="text-sm text-red-600 hover:text-red-800 underline"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Client List */}
         <Card>
           <CardHeader>
             <CardTitle>Lista de Clientes</CardTitle>
             <CardDescription>
-              {clients.length} cliente{clients.length !== 1 ? 's' : ''} encontrado{clients.length !== 1 ? 's' : ''}
+              {(clients || []).length} cliente{(clients || []).length !== 1 ? 's' : ''} encontrado{(clients || []).length !== 1 ? 's' : ''}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {clients.map((client) => (
+              {(clients || []).map((client) => (
                 <div
                   key={client.id}
                   className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
@@ -295,7 +373,7 @@ export default function ClientsPage() {
               ))}
             </div>
 
-            {clients.length === 0 && (
+            {(clients || []).length === 0 && !isLoading && (
               <div className="text-center py-12">
                 <Users className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum cliente encontrado</h3>
