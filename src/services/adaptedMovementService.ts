@@ -129,13 +129,17 @@ class RealMovementService implements MovementService {
   }
 
   async getMovementsSummary(): Promise<MovementSummary> {
-    const summary = await apiClient.get<any>('/movements/summary');
+    // Get summary data and movements count separately
+    const [summary, movements] = await Promise.all([
+      apiClient.get<any>('/movements/captation-total'),
+      apiClient.get<any[]>('/movements')
+    ]);
     
     return {
       total_deposits: parseFloat(summary.total_deposits || '0'),
       total_withdrawals: parseFloat(summary.total_withdrawals || '0'),
-      net_amount: parseFloat(summary.net_amount || '0'),
-      total_movements: summary.total_movements || 0,
+      net_amount: parseFloat(summary.net_captation || '0'), // Note: backend uses 'net_captation'
+      total_movements: movements.length,
     };
   }
 }

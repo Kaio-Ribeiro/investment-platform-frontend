@@ -7,6 +7,7 @@ import { AuthLoadingScreen } from '@/components/ui/loading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   Plus, 
   Search, 
@@ -27,13 +28,21 @@ export default function MovementsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<MovementFilters>({});
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
+        
+        // Prepare filters with date range
+        const dateFilters = { ...filters };
+        if (startDate) dateFilters.start_date = startDate;
+        if (endDate) dateFilters.end_date = endDate;
+        
         const [movementsData, summaryData] = await Promise.all([
-          adaptedMovementService.getMovements(filters),
+          adaptedMovementService.getMovements(dateFilters),
           adaptedMovementService.getMovementsSummary()
         ]);
         
@@ -49,7 +58,7 @@ export default function MovementsPage() {
     if (!authLoading) {
       loadData();
     }
-  }, [authLoading, filters, searchTerm]);
+  }, [authLoading, filters, startDate, endDate]);
 
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
@@ -77,6 +86,20 @@ export default function MovementsPage() {
     movement.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     movement.note?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleDateFilterApply = () => {
+    // Force reload with new date filters
+    const dateFilters = { ...filters };
+    if (startDate) dateFilters.start_date = startDate;
+    if (endDate) dateFilters.end_date = endDate;
+    setFilters(dateFilters);
+  };
+
+  const handleDateFilterClear = () => {
+    setStartDate('');
+    setEndDate('');
+    setFilters({});
+  };
 
   if (authLoading || isLoading) {
     return <AuthLoadingScreen text="Carregando movimentações..." />;
@@ -166,18 +189,63 @@ export default function MovementsPage() {
           </div>
         )}
 
-        {/* Search */}
-        <div className="bg-white p-4 rounded-lg shadow mb-6">
-          <div className="flex items-center space-x-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+        {/* Search and Filters */}
+        <div className="bg-white p-6 rounded-lg shadow mb-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Filtros</h3>
+          
+          {/* Search */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <Label htmlFor="search" className="text-sm font-medium text-gray-700 mb-1 block">
+                Buscar
+              </Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="search"
+                  placeholder="Por cliente ou observação..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="startDate" className="text-sm font-medium text-gray-700 mb-1 block">
+                Data Inicial
+              </Label>
               <Input
-                placeholder="Buscar por cliente ou observação..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                id="startDate"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full"
               />
             </div>
+            
+            <div>
+              <Label htmlFor="endDate" className="text-sm font-medium text-gray-700 mb-1 block">
+                Data Final
+              </Label>
+              <Input
+                id="endDate"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+          
+          {/* Filter Actions */}
+          <div className="flex space-x-2">
+            <Button onClick={handleDateFilterApply} size="sm">
+              Aplicar Filtros
+            </Button>
+            <Button onClick={handleDateFilterClear} variant="outline" size="sm">
+              Limpar Filtros
+            </Button>
           </div>
         </div>
 
@@ -212,15 +280,12 @@ export default function MovementsPage() {
                             </h4>
                             {getMovementTypeBadge(movement.type)}
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                             <div>
                               <span className="font-medium">Cliente:</span> {movement.client_name}
                             </div>
                             <div>
                               <span className="font-medium">Data:</span> {new Date(movement.date).toLocaleDateString('pt-BR')}
-                            </div>
-                            <div>
-                              <span className="font-medium">ID:</span> {movement.id}
                             </div>
                           </div>
                           {movement.note && (
