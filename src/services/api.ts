@@ -59,7 +59,7 @@ export const authService = {
 
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
     try {
-      const response = await api.post('/auth/register', data);
+      const response = await api.post('/users/register', data);
       return response.data;
     } catch (error) {
       throw authService.handleError(error);
@@ -68,7 +68,7 @@ export const authService = {
 
   getCurrentUser: async (): Promise<User> => {
     try {
-      const response = await api.get('/auth/me');
+      const response = await api.get('/users/me');
       return response.data;
     } catch (error) {
       throw authService.handleError(error);

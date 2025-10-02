@@ -13,6 +13,7 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
+  is_active?: boolean;
 }
 
 export interface AuthResponse {
