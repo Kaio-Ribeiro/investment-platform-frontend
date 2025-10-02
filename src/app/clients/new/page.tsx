@@ -14,6 +14,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { quickClientSchema, type QuickClientFormData, formatCPF, formatPhone } from '../../../schemas/client';
+import { clientService } from '../../../services/adaptedClientService';
+import type { Client } from '../../../types/client';
 import { toast } from 'sonner';
 
 export default function NewClientPage() {
@@ -36,10 +38,39 @@ export default function NewClientPage() {
     try {
       setIsSubmitting(true);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Convert form data to Client format
+      const clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'> = {
+        name: data.name,
+        cpf: data.cpf,
+        rg: '',
+        birthDate: new Date(),
+        gender: undefined,
+        contact: {
+          email: data.email,
+          phone: data.phone,
+        },
+        address: {
+          street: '',
+          number: '',
+          neighborhood: '',
+          city: '',
+          state: '',
+          zipCode: '',
+          country: 'Brasil',
+        },
+        investmentProfile: 'not_defined',
+        riskTolerance: 5,
+        investmentExperience: 'beginner',
+        monthlyIncome: 0,
+        netWorth: 0,
+        investmentGoals: [],
+        status: 'active',
+        createdBy: 'user',
+        notes: '',
+        tags: [],
+      };
       
-      console.log('Dados do cliente:', data);
+      const createdClient = await clientService.createClient(clientData);
       
       toast.success('Cliente cadastrado com sucesso!');
       router.push('/clients');
@@ -118,10 +149,14 @@ export default function NewClientPage() {
                         <Input
                           placeholder="000.000.000-00"
                           {...field}
+                          maxLength={14} // 11 dígitos + 3 caracteres de formatação
                           onChange={(e) => {
                             const value = e.target.value.replace(/\D/g, '');
-                            const formatted = formatCPF(value);
-                            field.onChange(formatted);
+                            // Limita a 11 dígitos
+                            if (value.length <= 11) {
+                              const formatted = formatCPF(value);
+                              field.onChange(formatted);
+                            }
                           }}
                           disabled={isSubmitting}
                         />
@@ -162,10 +197,14 @@ export default function NewClientPage() {
                         <Input
                           placeholder="(11) 99999-9999"
                           {...field}
+                          maxLength={15} // 11 dígitos + 4 caracteres de formatação
                           onChange={(e) => {
                             const value = e.target.value.replace(/\D/g, '');
-                            const formatted = formatPhone(value);
-                            field.onChange(formatted);
+                            // Limita a 11 dígitos (celular) ou 10 dígitos (fixo)
+                            if (value.length <= 11) {
+                              const formatted = formatPhone(value);
+                              field.onChange(formatted);
+                            }
                           }}
                           disabled={isSubmitting}
                         />
