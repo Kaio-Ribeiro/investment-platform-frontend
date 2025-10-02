@@ -1,5 +1,4 @@
 import { apiClient, checkBackendHealth } from '../lib/api';
-import { mockClientService } from './clientService';
 import type { Client, ClientWithAssets, ClientFilters, InvestmentProfile, ClientStatus } from '../types/client';
 import type { PaginatedResponse } from '../lib/api';
 
@@ -97,7 +96,50 @@ class RealClientService implements ClientService {
   }
 
   async getClient(id: string): Promise<Client> {
-    return apiClient.get<Client>(`/clients/${id}`);
+    const backendClient = await apiClient.get<any>(`/clients/${id}`);
+    
+    // Convert backend format to frontend format (same as in getClients)
+    const createdAt = backendClient.created_at ? new Date(backendClient.created_at) : new Date();
+    const updatedAt = backendClient.updated_at ? new Date(backendClient.updated_at) : new Date();
+
+    return {
+      id: backendClient.id.toString(),
+      name: backendClient.name,
+      cpf: backendClient.cpf,
+      rg: backendClient.rg,
+      birthDate: new Date(backendClient.birth_date),
+      gender: backendClient.gender,
+      contact: {
+        email: backendClient.email,
+        phone: backendClient.phone || '',
+        mobile: backendClient.mobile,
+        whatsapp: backendClient.whatsapp,
+      },
+      address: {
+        street: backendClient.street || '',
+        number: backendClient.number || '',
+        complement: backendClient.complement,
+        neighborhood: backendClient.neighborhood || '',
+        city: backendClient.city || '',
+        state: backendClient.state || '',
+        zipCode: backendClient.zip_code || '',
+        country: backendClient.country || 'Brasil',
+      },
+      investmentProfile: (backendClient.investment_profile || 'not_defined') as InvestmentProfile,
+      riskTolerance: backendClient.risk_tolerance ?? 5,
+      investmentExperience: (backendClient.investment_experience || 'beginner') as 'beginner' | 'intermediate' | 'advanced',
+      monthlyIncome: backendClient.monthly_income ?? 0,
+      netWorth: backendClient.net_worth ?? 0,
+      investmentGoals: backendClient.investment_goals ?? [],
+      status: (backendClient.status || 'active') as ClientStatus,
+      createdAt,
+      updatedAt,
+      createdBy: backendClient.created_by || 'system',
+      lastContactDate: backendClient.last_contact_date ? new Date(backendClient.last_contact_date) : undefined,
+      notes: backendClient.notes || '',
+      tags: backendClient.tags ?? [],
+      referralSource: backendClient.referral_source,
+    };
   }
 
   async createClient(client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<Client> {
@@ -178,7 +220,88 @@ class RealClientService implements ClientService {
   }
 
   async updateClient(id: string, client: Partial<Client>): Promise<Client> {
-    return apiClient.put<Client>(`/clients/${id}`, client);
+    // Convert frontend format to backend format
+    const backendData: any = {};
+    
+    if (client.name !== undefined) backendData.name = client.name;
+    if (client.cpf !== undefined) backendData.cpf = client.cpf;
+    if (client.rg !== undefined) backendData.rg = client.rg;
+    if (client.birthDate !== undefined) backendData.birth_date = client.birthDate.toISOString().split('T')[0];
+    if (client.gender !== undefined) backendData.gender = client.gender;
+    
+    if (client.contact) {
+      if (client.contact.email !== undefined) backendData.email = client.contact.email;
+      if (client.contact.phone !== undefined) backendData.phone = client.contact.phone;
+      if (client.contact.mobile !== undefined) backendData.mobile = client.contact.mobile;
+      if (client.contact.whatsapp !== undefined) backendData.whatsapp = client.contact.whatsapp;
+    }
+    
+    if (client.address) {
+      if (client.address.street !== undefined) backendData.street = client.address.street;
+      if (client.address.number !== undefined) backendData.number = client.address.number;
+      if (client.address.complement !== undefined) backendData.complement = client.address.complement;
+      if (client.address.neighborhood !== undefined) backendData.neighborhood = client.address.neighborhood;
+      if (client.address.city !== undefined) backendData.city = client.address.city;
+      if (client.address.state !== undefined) backendData.state = client.address.state;
+      if (client.address.zipCode !== undefined) backendData.zip_code = client.address.zipCode;
+      if (client.address.country !== undefined) backendData.country = client.address.country;
+    }
+    
+    if (client.investmentProfile !== undefined) backendData.investment_profile = client.investmentProfile;
+    if (client.riskTolerance !== undefined) backendData.risk_tolerance = client.riskTolerance;
+    if (client.investmentExperience !== undefined) backendData.investment_experience = client.investmentExperience;
+    if (client.monthlyIncome !== undefined) backendData.monthly_income = client.monthlyIncome;
+    if (client.netWorth !== undefined) backendData.net_worth = client.netWorth;
+    if (client.investmentGoals !== undefined) backendData.investment_goals = client.investmentGoals;
+    if (client.status !== undefined) backendData.status = client.status;
+    if (client.notes !== undefined) backendData.notes = client.notes;
+    if (client.tags !== undefined) backendData.tags = client.tags;
+    if (client.referralSource !== undefined) backendData.referral_source = client.referralSource;
+
+    const backendClient = await apiClient.put<any>(`/clients/${id}`, backendData);
+    
+    // Convert response back to frontend format
+    const createdAt = backendClient.created_at ? new Date(backendClient.created_at) : new Date();
+    const updatedAt = backendClient.updated_at ? new Date(backendClient.updated_at) : new Date();
+
+    return {
+      id: backendClient.id.toString(),
+      name: backendClient.name,
+      cpf: backendClient.cpf,
+      rg: backendClient.rg,
+      birthDate: new Date(backendClient.birth_date),
+      gender: backendClient.gender,
+      contact: {
+        email: backendClient.email,
+        phone: backendClient.phone || '',
+        mobile: backendClient.mobile,
+        whatsapp: backendClient.whatsapp,
+      },
+      address: {
+        street: backendClient.street || '',
+        number: backendClient.number || '',
+        complement: backendClient.complement,
+        neighborhood: backendClient.neighborhood || '',
+        city: backendClient.city || '',
+        state: backendClient.state || '',
+        zipCode: backendClient.zip_code || '',
+        country: backendClient.country || 'Brasil',
+      },
+      investmentProfile: (backendClient.investment_profile || 'not_defined') as InvestmentProfile,
+      riskTolerance: backendClient.risk_tolerance ?? 5,
+      investmentExperience: (backendClient.investment_experience || 'beginner') as 'beginner' | 'intermediate' | 'advanced',
+      monthlyIncome: backendClient.monthly_income ?? 0,
+      netWorth: backendClient.net_worth ?? 0,
+      investmentGoals: backendClient.investment_goals ?? [],
+      status: (backendClient.status || 'active') as ClientStatus,
+      createdAt,
+      updatedAt,
+      createdBy: backendClient.created_by || 'system',
+      lastContactDate: backendClient.last_contact_date ? new Date(backendClient.last_contact_date) : undefined,
+      notes: backendClient.notes || '',
+      tags: backendClient.tags ?? [],
+      referralSource: backendClient.referral_source,
+    };
   }
 
   async deleteClient(id: string): Promise<void> {
@@ -190,111 +313,5 @@ class RealClientService implements ClientService {
   }
 }
 
-class ClientServiceAdapter {
-  private realService = new RealClientService();
-  private backendAvailable: boolean | null = null;
-
-  private async checkBackend(): Promise<boolean> {
-    if (this.backendAvailable === null) {
-      this.backendAvailable = await checkBackendHealth();
-    }
-    return this.backendAvailable;
-  }
-
-  async getClients(
-    filters?: ClientFilters,
-    sortBy?: { field: string; direction: 'asc' | 'desc' },
-    page = 1,
-    limit = 10
-  ): Promise<PaginatedResponse<Client>> {
-    const isBackendAvailable = await this.checkBackend();
-    
-    if (isBackendAvailable) {
-      try {
-        return await this.realService.getClients(filters, sortBy, page, limit);
-      } catch (error) {
-        console.warn('Real API failed, falling back to mock');
-        this.backendAvailable = false;
-      }
-    }
-    
-    return mockClientService.getClients(filters, sortBy, page, limit);
-  }
-
-  async getClient(id: string): Promise<Client> {
-    const isBackendAvailable = await this.checkBackend();
-    
-    if (isBackendAvailable) {
-      try {
-        return await this.realService.getClient(id);
-      } catch (error) {
-        console.warn('Real API failed, falling back to mock');
-        this.backendAvailable = false;
-      }
-    }
-    
-    return mockClientService.getClient(id);
-  }
-
-  async createClient(client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<Client> {
-    const isBackendAvailable = await this.checkBackend();
-    
-    if (isBackendAvailable) {
-      try {
-        return await this.realService.createClient(client);
-      } catch (error) {
-        console.warn('Real API failed, falling back to mock');
-        this.backendAvailable = false;
-      }
-    }
-    
-    return mockClientService.createClient(client);
-  }
-
-  async updateClient(id: string, client: Partial<Client>): Promise<Client> {
-    const isBackendAvailable = await this.checkBackend();
-    
-    if (isBackendAvailable) {
-      try {
-        return await this.realService.updateClient(id, client);
-      } catch (error) {
-        console.warn('Real API failed, falling back to mock');
-        this.backendAvailable = false;
-      }
-    }
-    
-    return mockClientService.updateClient(id, client);
-  }
-
-  async deleteClient(id: string): Promise<void> {
-    const isBackendAvailable = await this.checkBackend();
-    
-    if (isBackendAvailable) {
-      try {
-        return await this.realService.deleteClient(id);
-      } catch (error) {
-        console.warn('Real API failed, falling back to mock');
-        this.backendAvailable = false;
-      }
-    }
-    
-    return mockClientService.deleteClient(id);
-  }
-
-  async getClientWithAssets(id: string): Promise<ClientWithAssets> {
-    const isBackendAvailable = await this.checkBackend();
-    
-    if (isBackendAvailable) {
-      try {
-        return await this.realService.getClientWithAssets(id);
-      } catch (error) {
-        console.warn('Real API failed, falling back to mock');
-        this.backendAvailable = false;
-      }
-    }
-    
-    return mockClientService.getClientWithAssets(id);
-  }
-}
-
-export const clientService = new ClientServiceAdapter();
+// Export the real service directly since backend is working
+export const clientService = new RealClientService();

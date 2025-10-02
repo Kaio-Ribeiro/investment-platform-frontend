@@ -17,7 +17,9 @@ import {
   DollarSign,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  UserCheck,
+  UserX
 } from 'lucide-react';
 import { clientService } from '../../services/adaptedClientService';
 import type { Client, ClientStats } from '../../types/client';
@@ -64,6 +66,7 @@ export default function ClientsPage() {
         setIsLoading(true);
         setError(null);
         
+        // Get paginated clients for display
         const clientsData = await clientService.getClients(
           { search: debouncedSearchTerm || undefined }, // Only send if not empty
           { field: 'name', direction: 'asc' },
@@ -71,20 +74,33 @@ export default function ClientsPage() {
           10
         );
         
+        // Get all clients for accurate statistics (without search filter)
+        const allClientsData = debouncedSearchTerm ? clientsData : await clientService.getClients(
+          {}, // No filters to get all clients
+          { field: 'name', direction: 'asc' },
+          1,
+          1000 // Large number to get all clients
+        );
+        
         // Verificar se os dados são válidos
         if (clientsData && Array.isArray(clientsData.items)) {
           setClients(clientsData.items);
           
-          // Mock stats for now
-          const mockStats: ClientStats = {
-            total: clientsData.total || 0,
-            active: Math.floor((clientsData.total || 0) * 0.8),
-            prospects: Math.floor((clientsData.total || 0) * 0.2),
-            totalInvestments: 50000000,
-            averagePortfolioValue: (clientsData.total || 0) > 0 ? 50000000 / (clientsData.total || 0) : 0
+          // Calculate real stats from all client data
+          const allClients = allClientsData?.items || [];
+          const total = allClients.length;
+          const active = allClients.filter(client => client.status === 'active').length;
+          const prospects = allClients.filter(client => client.status === 'prospect').length;
+          
+          const realStats: ClientStats = {
+            total: total,
+            active: active,
+            prospects: prospects,
+            totalInvestments: 0, // We don't have investment data yet
+            averagePortfolioValue: 0 // We don't have portfolio data yet
           };
           
-          setStats(mockStats);
+          setStats(realStats);
         } else {
           // Se não temos dados válidos, usar dados mock
           setClients([]);
@@ -166,6 +182,47 @@ export default function ClientsPage() {
       style: 'currency',
       currency: 'BRL',
     }).format(value);
+  };
+
+  const handleDeleteClient = async (clientId: string, clientName: string) => {
+    if (!confirm(`Tem certeza que deseja excluir o cliente "${clientName}"?`)) {
+      return;
+    }
+
+    try {
+      await clientService.deleteClient(clientId);
+      
+      // Refresh the client list
+      refreshClientList();
+      
+      // Show success message (you can add toast notification here)
+      alert('Cliente excluído com sucesso!');
+    } catch (error) {
+      console.error('Erro ao excluir cliente:', error);
+      alert('Erro ao excluir cliente. Tente novamente.');
+    }
+  };
+
+  const handleToggleClientStatus = async (clientId: string, clientName: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    const action = newStatus === 'active' ? 'ativar' : 'desativar';
+    
+    if (!confirm(`Tem certeza que deseja ${action} o cliente "${clientName}"?`)) {
+      return;
+    }
+
+    try {
+      await clientService.updateClient(clientId, { status: newStatus as any });
+      
+      // Refresh the client list
+      refreshClientList();
+      
+      // Show success message
+      alert(`Cliente ${newStatus === 'active' ? 'ativado' : 'desativado'} com sucesso!`);
+    } catch (error) {
+      console.error('Erro ao alterar status do cliente:', error);
+      alert('Erro ao alterar status do cliente. Tente novamente.');
+    }
   };
 
   if (authLoading || isLoading) {
@@ -334,11 +391,6 @@ export default function ClientsPage() {
                         </div>
                         <div>
                           <p><span className="font-medium">Telefone:</span> {client.contact.phone}</p>
-                          <p><span className="font-medium">Cidade:</span> {client.address.city}/{client.address.state}</p>
-                        </div>
-                        <div>
-                          <p><span className="font-medium">Renda:</span> {client.monthlyIncome ? formatCurrency(client.monthlyIncome) : 'Não informado'}</p>
-                          <p><span className="font-medium">Patrimônio:</span> {client.netWorth ? formatCurrency(client.netWorth) : 'Não informado'}</p>
                         </div>
                       </div>
 
@@ -364,7 +416,22 @@ export default function ClientsPage() {
                           <Edit className="w-4 h-4" />
                         </Button>
                       </Link>
-                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className={client.status === 'active' ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700'}
+                        onClick={() => handleToggleClientStatus(client.id, client.name, client.status)}
+                        title={client.status === 'active' ? 'Desativar cliente' : 'Ativar cliente'}
+                      >
+                        {client.status === 'active' ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => handleDeleteClient(client.id, client.name)}
+                        title="Excluir cliente"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
