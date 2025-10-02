@@ -26,6 +26,7 @@ export interface Asset {
   description?: string;
   currentPrice?: number;
   currency: string;
+  exchange?: string; // Added field for exchange
   
   // Market data
   marketCap?: number;

@@ -7,7 +7,6 @@ import { AuthLoadingScreen } from '@/components/ui/loading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '../../components/ui/badge';
 import { 
   Plus, 
   Search, 
@@ -20,7 +19,6 @@ import {
   Eye
 } from 'lucide-react';
 import { assetService } from '../../services/adaptedAssetService';
-import { assetTypeLabels, formatCurrency, formatPercentage } from '../../schemas/investment';
 import type { Asset } from '../../types/investment';
 
 export default function AssetsPage() {
@@ -47,26 +45,9 @@ export default function AssetsPage() {
     }
   }, [authLoading]);
 
-  const getAssetTypeBadge = (type: string) => {
-    const colors: Record<string, string> = {
-      stocks: 'bg-blue-100 text-blue-800',
-      real_estate_funds: 'bg-green-100 text-green-800',
-      investment_funds: 'bg-purple-100 text-purple-800',
-      fixed_income: 'bg-yellow-100 text-yellow-800',
-      crypto: 'bg-orange-100 text-orange-800',
-    };
-
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[type] || 'bg-gray-100 text-gray-800'}`}>
-        {assetTypeLabels[type] || type}
-      </span>
-    );
-  };
-
   const filteredAssets = assets.filter(asset =>
     asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    asset.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    asset.type.toLowerCase().includes(searchTerm.toLowerCase())
+    asset.symbol.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (authLoading || isLoading) {
@@ -201,28 +182,18 @@ export default function AssetsPage() {
                         <h3 className="text-lg font-semibold text-gray-900">
                           {asset.symbol}
                         </h3>
-                        {getAssetTypeBadge(asset.type)}
-                        {asset.sector && (
-                          <Badge variant="outline" className="text-xs">
-                            {asset.sector}
-                          </Badge>
-                        )}
                       </div>
                       
                       <p className="text-gray-600 mb-2">{asset.name}</p>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                         <div>
-                          <p><span className="font-medium">Preço:</span> {asset.currentPrice ? formatCurrency(asset.currentPrice) : 'N/A'}</p>
+                          <p><span className="font-medium">Ticker:</span> {asset.symbol}</p>
                           <p><span className="font-medium">Moeda:</span> {asset.currency}</p>
                         </div>
                         <div>
-                          <p><span className="font-medium">Dividend Yield:</span> {asset.dividendYield ? formatPercentage(asset.dividendYield) : 'N/A'}</p>
-                          <p><span className="font-medium">Setor:</span> {asset.sector || 'N/A'}</p>
-                        </div>
-                        <div>
-                          <p><span className="font-medium">Valor de Mercado:</span> {asset.marketCap ? formatCurrency(asset.marketCap) : 'N/A'}</p>
-                          <p><span className="font-medium">Atualizado:</span> {asset.lastUpdate.toLocaleDateString('pt-BR')}</p>
+                          <p><span className="font-medium">Bolsa:</span> {asset.exchange || 'N/A'}</p>
+                          <p><span className="font-medium">ID:</span> {asset.id}</p>
                         </div>
                       </div>
                     </div>

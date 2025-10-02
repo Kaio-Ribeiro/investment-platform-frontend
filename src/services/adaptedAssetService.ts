@@ -22,11 +22,8 @@ class RealAssetService implements AssetService {
       symbol: ba.ticker,
       name: ba.name,
       type: 'stocks' as const,
-      sector: 'Unknown',
       currency: ba.currency || 'USD',
-      currentPrice: 0,
-      marketCap: 0,
-      dividendYield: undefined,
+      exchange: ba.exchange,
       lastUpdate: new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -88,12 +85,6 @@ class RealAssetService implements AssetService {
       name: backendAsset.name,
       exchange: backendAsset.exchange,
       currency: backendAsset.currency,
-      currentPrice: backendAsset.current_price,
-      dividendYield: backendAsset.dividend_yield,
-      sector: backendAsset.sector,
-      marketCap: backendAsset.market_cap,
-      type: backendAsset.type,
-      lastUpdate: new Date(),
     };
   }
 

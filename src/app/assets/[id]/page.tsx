@@ -7,18 +7,15 @@ import { useRequireAuth } from '../../../hooks/useAuth';
 import { AuthLoadingScreen } from '@/components/ui/loading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { 
   ArrowLeft,
   Building2,
-  DollarSign,
-  TrendingUp,
   Calendar,
   Globe,
-  PieChart,
   BarChart3,
   Edit,
-  Trash2
+  Trash2,
+  TrendingUp
 } from 'lucide-react';
 import { adaptedAssetService } from '../../../services/adaptedAssetService';
 
@@ -28,12 +25,6 @@ interface Asset {
   name: string;
   exchange: string;
   currency: string;
-  currentPrice?: number;
-  dividendYield?: number;
-  sector?: string;
-  marketCap?: number;
-  type?: string;
-  lastUpdate: Date;
 }
 
 export default function AssetDetailsPage() {
@@ -85,46 +76,6 @@ export default function AssetDetailsPage() {
     }
   };
 
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(value);
-  };
-
-  const formatPercentage = (value: number): string => {
-    return `${value.toFixed(2)}%`;
-  };
-
-  const formatNumber = (value: number): string => {
-    if (value >= 1e9) {
-      return `${(value / 1e9).toFixed(2)}B`;
-    } else if (value >= 1e6) {
-      return `${(value / 1e6).toFixed(2)}M`;
-    } else if (value >= 1e3) {
-      return `${(value / 1e3).toFixed(2)}K`;
-    }
-    return value.toString();
-  };
-
-  const getAssetTypeBadge = (type?: string) => {
-    if (!type) return null;
-    
-    const typeColors: Record<string, string> = {
-      'stock': 'bg-blue-100 text-blue-800',
-      'etf': 'bg-green-100 text-green-800',
-      'crypto': 'bg-orange-100 text-orange-800',
-      'bond': 'bg-purple-100 text-purple-800',
-      'commodity': 'bg-yellow-100 text-yellow-800',
-    };
-
-    return (
-      <Badge className={`${typeColors[type] || 'bg-gray-100 text-gray-800'} capitalize`}>
-        {type}
-      </Badge>
-    );
-  };
-
   if (authLoading) {
     return <AuthLoadingScreen />;
   }
@@ -163,7 +114,7 @@ export default function AssetDetailsPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link href="/assets">
                 <Button variant="outline" size="sm">
@@ -173,11 +124,8 @@ export default function AssetDetailsPage() {
               </Link>
               <div className="flex items-center space-x-3">
                 <h1 className="text-3xl font-bold text-gray-900">{asset.ticker}</h1>
-                {getAssetTypeBadge(asset.type)}
               </div>
-            </div>
-            
-            <div className="flex items-center space-x-2">
+            </div>            <div className="flex items-center space-x-2">
               <Link href={`/assets/${asset.id}/edit`}>
                 <Button variant="outline" size="sm">
                   <Edit className="w-4 h-4 mr-2" />
@@ -231,55 +179,6 @@ export default function AssetDetailsPage() {
                     <label className="text-sm font-medium text-gray-500">Moeda</label>
                     <p>{asset.currency}</p>
                   </div>
-                  {asset.sector && (
-                    <>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Setor</label>
-                        <p>{asset.sector}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Tipo</label>
-                        <p className="capitalize">{asset.type || 'N/A'}</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Dados Financeiros */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <TrendingUp className="w-5 h-5 mr-2" />
-                  Dados Financeiros
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <DollarSign className="w-8 h-8 mx-auto text-blue-600 mb-2" />
-                    <label className="text-sm font-medium text-gray-500 block">Preço Atual</label>
-                    <p className="text-2xl font-bold text-blue-600">
-                      {asset.currentPrice ? formatCurrency(asset.currentPrice) : 'N/A'}
-                    </p>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <PieChart className="w-8 h-8 mx-auto text-green-600 mb-2" />
-                    <label className="text-sm font-medium text-gray-500 block">Dividend Yield</label>
-                    <p className="text-2xl font-bold text-green-600">
-                      {asset.dividendYield ? formatPercentage(asset.dividendYield) : 'N/A'}
-                    </p>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <BarChart3 className="w-8 h-8 mx-auto text-purple-600 mb-2" />
-                    <label className="text-sm font-medium text-gray-500 block">Valor de Mercado</label>
-                    <p className="text-2xl font-bold text-purple-600">
-                      {asset.marketCap ? formatNumber(asset.marketCap) : 'N/A'}
-                    </p>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -298,10 +197,6 @@ export default function AssetDetailsPage() {
                 <div>
                   <label className="text-sm font-medium text-gray-500">ID do Asset</label>
                   <p className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">{asset.id}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Última Atualização</label>
-                  <p>{asset.lastUpdate.toLocaleDateString('pt-BR')} às {asset.lastUpdate.toLocaleTimeString('pt-BR')}</p>
                 </div>
               </CardContent>
             </Card>
