@@ -19,7 +19,7 @@ import {
   Edit,
   Trash2
 } from 'lucide-react';
-import { mockClientService } from '../../services/clientService';
+import { clientService } from '../../services/adaptedClientService';
 import type { Client, ClientStats } from '../../types/client';
 
 export default function ClientsPage() {
@@ -33,13 +33,24 @@ export default function ClientsPage() {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const [clientsData, statsData] = await Promise.all([
-          mockClientService.getClients(),
-          mockClientService.getClientStats()
-        ]);
+        const clientsData = await clientService.getClients(
+          { search: searchTerm }, 
+          { field: 'name', direction: 'asc' },
+          1,
+          10
+        );
         
-        setClients(clientsData.clients);
-        setStats(statsData);
+        // Mock stats for now
+        const mockStats: ClientStats = {
+          total: clientsData.total,
+          active: Math.floor(clientsData.total * 0.8),
+          prospects: Math.floor(clientsData.total * 0.2),
+          totalInvestments: 50000000,
+          averagePortfolioValue: clientsData.total > 0 ? 50000000 / clientsData.total : 0
+        };
+        
+        setClients(clientsData.items);
+        setStats(mockStats);
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
       } finally {

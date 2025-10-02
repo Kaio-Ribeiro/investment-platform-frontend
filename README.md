@@ -10,7 +10,51 @@ Frontend da plataforma de gestão de investimentos desenvolvida com Next.js 14.
 - **ShadCN/UI**
 - **TanStack Query**
 - **React Hook Form + Zod**
-- **Axios**
+- **Integração com Backend FastAPI**
+
+## 🐳 Execução com Docker
+
+### Pré-requisitos
+- Docker e Docker Compose instalados
+- Projeto backend (`investment-platform-backend`)
+
+### Execução Rápida
+```bash
+# Windows (PowerShell)
+.\docker-helper.ps1 start
+
+# Linux/Mac
+./docker-helper.sh start
+```
+
+### Comandos Disponíveis
+```bash
+# Iniciar todos os serviços
+.\docker-helper.ps1 start
+
+# Parar todos os serviços
+.\docker-helper.ps1 stop
+
+# Ver status dos serviços
+.\docker-helper.ps1 status
+
+# Ver logs (todos ou de um serviço específico)
+.\docker-helper.ps1 logs
+.\docker-helper.ps1 logs frontend
+
+# Reconstruir serviços
+.\docker-helper.ps1 rebuild
+```
+
+### URLs dos Serviços
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **Database**: localhost:5432
+- **Redis**: localhost:6379
+
+## 💻 Execução em Desenvolvimento
+
+### Sem Docker
 
 ## 📋 Funcionalidades Planejadas
 

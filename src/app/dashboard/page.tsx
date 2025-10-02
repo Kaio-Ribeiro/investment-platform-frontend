@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ConnectionStatus } from '../../components/ConnectionStatus';
 import { LogOut, User, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRequireAuth } from '../../hooks/useAuth';
@@ -49,13 +50,14 @@ export default function DashboardPage() {
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <div className="flex items-center space-x-4 mb-4">
+          <div className="flex items-center justify-between mb-4">
             <Link href="/">
               <Button variant="ghost" size="sm" className="flex items-center space-x-2">
                 <ArrowLeft className="w-4 h-4" />
                 <span>Voltar</span>
               </Button>
             </Link>
+            <ConnectionStatus />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
           <p className="text-gray-600 mt-1">
