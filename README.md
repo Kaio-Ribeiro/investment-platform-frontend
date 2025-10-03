@@ -8,116 +8,102 @@ Frontend da plataforma de gestão de investimentos desenvolvida com Next.js 14.
 - **TypeScript**
 - **Tailwind CSS**
 - **ShadCN/UI**
-- **TanStack Query**
 - **React Hook Form + Zod**
 - **Integração com Backend FastAPI**
+- **XLSX & File-Saver** (Exportação de dados)
 
-## 🐳 Execução com Docker
+## � Execução em Desenvolvimento
 
-### Pré-requisitos
-- Docker e Docker Compose instalados
-- Projeto backend (`investment-platform-backend`)
-
-### Execução Rápida
-```bash
-# Windows (PowerShell)
-.\docker-helper.ps1 start
-
-# Linux/Mac
-./docker-helper.sh start
-```
-
-### Comandos Disponíveis
-```bash
-# Iniciar todos os serviços
-.\docker-helper.ps1 start
-
-# Parar todos os serviços
-.\docker-helper.ps1 stop
-
-# Ver status dos serviços
-.\docker-helper.ps1 status
-
-# Ver logs (todos ou de um serviço específico)
-.\docker-helper.ps1 logs
-.\docker-helper.ps1 logs frontend
-
-# Reconstruir serviços
-.\docker-helper.ps1 rebuild
-```
-
-### URLs dos Serviços
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **Database**: localhost:5432
-- **Redis**: localhost:6379
-
-## 💻 Execução em Desenvolvimento
-
-### Sem Docker
-
-## 📋 Funcionalidades Planejadas
-
-### 1. Autenticação
-- Login com email e senha
-- Cadastro de usuários
-- Autenticação JWT
-- Proteção de rotas
-
-### 2. Gestão de Clientes
-- CRUD completo de clientes
-- Busca e filtros
-- Paginação
-- Status ativo/inativo
-
-### 3. Ativos Financeiros
-- Integração com Yahoo Finance API
-- Cadastro de alocações por cliente
-- Histórico de compras
-- Listagem de alocações
-
-### 4. Movimentações
-- Registro de entradas e saídas
-- Filtros por período
-- Relatórios de captação
-- Exportação Excel/CSV
-
-## 🛠️ Como executar
-
-### Desenvolvimento
-
+### Sem Docker (Recomendado)
 ```bash
 npm install
 npm run dev
 ```
 
-### Build
-
-```bash
-npm run build
-npm start
-```
-
-### Docker
-
+### Com Docker
 ```bash
 docker build -t investment-frontend .
 docker run -p 3000:3000 investment-frontend
 ```
+
+## 🏗️ Backend Dependencies
+
+Para funcionamento completo, execute o backend separadamente:
+
+```bash
+cd ../investment-platform-backend
+docker compose up --build
+```
+
+## 🌐 URLs dos Serviços
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **Database**: localhost:5432
+
+##  Funcionalidades Implementadas
+
+### ✅ 1. Autenticação
+- [x] Login com email e senha
+- [x] Autenticação JWT
+- [x] Proteção de rotas
+- [x] Middleware de autenticação
+
+### ✅ 2. Gestão de Clientes
+- [x] CRUD completo de clientes
+- [x] Busca e filtros
+- [x] Status ativo/inativo
+- [x] Estatísticas de investimento
+- [x] Exportação Excel/CSV
+
+### ✅ 3. Ativos Financeiros
+- [x] Cadastro de ativos
+- [x] Listagem com filtros
+- [x] Integração com preços sugeridos
+- [x] Visualização detalhada
+
+### ✅ 4. Alocações de Investimento
+- [x] Sistema completo de alocações
+- [x] Associação cliente-ativo
+- [x] Controle de quantidade e preços
+- [x] Listagem e filtros
+- [x] Exportação de dados
+
+### ✅ 5. Movimentações
+- [x] Registro de entradas e saídas
+- [x] Filtros por período e cliente
+- [x] Status de movimentações
+- [x] Exportação Excel/CSV
+
+### ✅ 6. Dashboard
+- [x] Visão geral do sistema
+- [x] Estatísticas de clientes
+- [x] Navegação rápida
+
+## 🛠️ Scripts Disponíveis
+
+- `npm run dev` - Inicia o servidor de desenvolvimento
+- `npm run build` - Cria build de produção
+- `npm run start` - Inicia servidor de produção
+- `npm run lint` - Executa o linter
 
 ## 📁 Estrutura do Projeto
 
 ```
 src/
 ├── app/                    # App Router (Next.js 14)
-│   ├── layout.tsx         # Layout principal
-│   ├── page.tsx           # Página inicial
-│   └── not-found.tsx      # Página 404
+│   ├── auth/              # Páginas de autenticação
+│   ├── dashboard/         # Dashboard principal
+│   ├── clients/           # Gestão de clientes
+│   ├── assets/            # Gestão de ativos e alocações
+│   ├── movements/         # Movimentações financeiras
+│   └── layout.tsx         # Layout principal
 ├── components/            # Componentes reutilizáveis
 │   ├── ui/               # Componentes ShadCN/UI
 │   └── providers/        # Providers (React Query, etc.)
-└── lib/                  # Utilitários
-    └── utils.ts          # Funções auxiliares
+├── services/             # Serviços de API
+├── types/                # Definições TypeScript
+├── utils/                # Utilitários e helpers
+└── hooks/                # Custom hooks
 ```
 
 ## 🌐 Variáveis de Ambiente
@@ -128,27 +114,23 @@ Crie um arquivo `.env.local`:
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-## 📝 Status do Desenvolvimento
+## � Recursos Especiais
 
-- [x] Estrutura inicial do projeto
-- [x] Configuração do Next.js 14
-- [x] Setup do ShadCN/UI
-- [x] Configuração do Docker
-- [ ] Tela de login
-- [ ] Tela de cadastro
-- [ ] Dashboard
-- [ ] Gestão de clientes
-- [ ] Gestão de ativos
-- [ ] Movimentações
-- [ ] Relatórios
+### Exportação de Dados
+- Excel (.xlsx) e CSV disponíveis em todas as listagens
+- Formatação automática de moedas e datas
+- Dados completos com estatísticas calculadas
 
-## 🔧 Scripts Disponíveis
+### Sistema de Autenticação
+- JWT tokens com refresh automático
+- Proteção de rotas por middleware
+- Redirecionamento inteligente pós-login
 
-- `npm run dev` - Inicia o servidor de desenvolvimento
-- `npm run build` - Cria build de produção
-- `npm run start` - Inicia servidor de produção
-- `npm run lint` - Executa o linter
+### Interface Responsiva
+- Design mobile-first
+- Componentes acessíveis
+- Tema consistente com Tailwind CSS
 
 ---
 
-**Desenvolvido como parte do case técnico para desenvolvedor Full-Stack**
+**Sistema completo de gestão de investimentos com funcionalidades avançadas**
