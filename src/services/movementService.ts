@@ -3,7 +3,6 @@ import type {
   Movement,
   MovementWithClient,
   MovementSummary,
-  CashFlowAnalysis,
   ClientBalance,
   CreateMovementRequest,
   UpdateMovementRequest,
@@ -110,20 +109,6 @@ export const movementService = {
     }
     
     const response = await api.get<MovementSummary>(`/movements/summary?${params}`);
-    return response.data;
-  },
-
-  async getCashFlowAnalysis(
-    clientId?: string,
-    startDate?: string,
-    endDate?: string
-  ): Promise<CashFlowAnalysis> {
-    const params = new URLSearchParams();
-    if (clientId) params.append('clientId', clientId);
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-
-    const response = await api.get<CashFlowAnalysis>(`/movements/cash-flow?${params}`);
     return response.data;
   },
 

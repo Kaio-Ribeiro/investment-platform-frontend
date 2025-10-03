@@ -100,49 +100,6 @@ export interface MovementSummary {
   recentMovements: MovementWithClient[];
 }
 
-// Cash Flow Analysis
-export interface CashFlowAnalysis {
-  clientId?: string; // If for specific client, otherwise global
-  period: {
-    start: Date;
-    end: Date;
-  };
-  
-  // Summary metrics
-  totalInflow: number;
-  totalOutflow: number;
-  netCashFlow: number;
-  averageMonthlyInflow: number;
-  averageMonthlyOutflow: number;
-  
-  // Monthly breakdown
-  monthlyData: {
-    month: string;
-    year: number;
-    inflow: number;
-    outflow: number;
-    netFlow: number;
-    balance: number;
-  }[];
-  
-  // By category
-  inflowByType: {
-    type: MovementType;
-    amount: number;
-    percentage: number;
-  }[];
-  
-  outflowByType: {
-    type: MovementType;
-    amount: number;
-    percentage: number;
-  }[];
-  
-  // Projections
-  projectedBalance?: number;
-  trend: 'increasing' | 'decreasing' | 'stable';
-}
-
 // Client Balance Information
 export interface ClientBalance {
   clientId: string;
@@ -280,7 +237,6 @@ export interface MovementReport {
   
   // Summary data
   summary: MovementSummary;
-  cashFlow: CashFlowAnalysis;
   
   // Detailed breakdown
   clientBreakdown: {

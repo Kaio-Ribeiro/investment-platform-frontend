@@ -22,10 +22,13 @@ import {
   TrendingUp,
   Users,
   PieChart,
-  ArrowLeft
+  ArrowLeft,
+  Table,
+  FileText
 } from 'lucide-react';
 import { adaptedAllocationService } from '../../../services/adaptedAllocationService';
 import { clientService } from '../../../services/adaptedClientService';
+import { exportAllocationsData } from '../../../utils/exportUtils';
 import type { AllocationWithDetails, AllocationSummary } from '../../../types/allocation';
 import type { Client } from '../../../types/client';
 
@@ -81,6 +84,24 @@ export default function AllocationsPage() {
 
   const handleClientFilterChange = (clientId: string) => {
     setSelectedClientId(clientId);
+  };
+
+  const handleExportExcel = () => {
+    try {
+      exportAllocationsData(filteredAllocations, 'excel');
+    } catch (error) {
+      console.error('Erro ao exportar Excel:', error);
+      alert('Erro ao exportar dados para Excel. Tente novamente.');
+    }
+  };
+
+  const handleExportCSV = () => {
+    try {
+      exportAllocationsData(filteredAllocations, 'csv');
+    } catch (error) {
+      console.error('Erro ao exportar CSV:', error);
+      alert('Erro ao exportar dados para CSV. Tente novamente.');
+    }
   };
 
   if (authLoading || isLoading) {
@@ -182,7 +203,29 @@ export default function AllocationsPage() {
 
         {/* Filters */}
         <div className="bg-white p-6 rounded-lg shadow mb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Filtros</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium text-gray-900">Filtros</h3>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleExportExcel}
+                className="flex items-center space-x-2"
+                title="Exportar para Excel"
+              >
+                <Table className="w-4 h-4" />
+                <span>Excel</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleExportCSV}
+                className="flex items-center space-x-2"
+                title="Exportar para CSV"
+              >
+                <FileText className="w-4 h-4" />
+                <span>CSV</span>
+              </Button>
+            </div>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

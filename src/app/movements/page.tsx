@@ -16,9 +16,12 @@ import {
   TrendingUp,
   DollarSign,
   BarChart3,
-  Calendar
+  Calendar,
+  Table,
+  FileText
 } from 'lucide-react';
 import { adaptedMovementService } from '../../services/adaptedMovementService';
+import { exportMovementsData } from '../../utils/exportUtils';
 import type { MovementWithClient, MovementSummary, MovementFilters } from '../../services/adaptedMovementService';
 
 export default function MovementsPage() {
@@ -93,6 +96,24 @@ export default function MovementsPage() {
     if (startDate) dateFilters.start_date = startDate;
     if (endDate) dateFilters.end_date = endDate;
     setFilters(dateFilters);
+  };
+
+  const handleExportExcel = () => {
+    try {
+      exportMovementsData(filteredMovements, 'excel');
+    } catch (error) {
+      console.error('Erro ao exportar Excel:', error);
+      alert('Erro ao exportar dados para Excel. Tente novamente.');
+    }
+  };
+
+  const handleExportCSV = () => {
+    try {
+      exportMovementsData(filteredMovements, 'csv');
+    } catch (error) {
+      console.error('Erro ao exportar CSV:', error);
+      alert('Erro ao exportar dados para CSV. Tente novamente.');
+    }
   };
 
   const handleDateFilterClear = () => {
@@ -191,7 +212,29 @@ export default function MovementsPage() {
 
         {/* Search and Filters */}
         <div className="bg-white p-6 rounded-lg shadow mb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Filtros</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium text-gray-900">Filtros</h3>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleExportExcel}
+                className="flex items-center space-x-2"
+                title="Exportar para Excel"
+              >
+                <Table className="w-4 h-4" />
+                <span>Excel</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleExportCSV}
+                className="flex items-center space-x-2"
+                title="Exportar para CSV"
+              >
+                <FileText className="w-4 h-4" />
+                <span>CSV</span>
+              </Button>
+            </div>
+          </div>
           
           {/* Search */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">

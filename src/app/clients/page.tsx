@@ -17,10 +17,14 @@ import {
   Edit,
   Trash2,
   UserCheck,
-  UserX
+  UserX,
+  Download,
+  FileText,
+  Table
 } from 'lucide-react';
 import { clientService } from '../../services/adaptedClientService';
 import { clientInvestmentService } from '../../services/clientInvestmentService';
+import { exportClientsData } from '../../utils/exportUtils';
 import type { Client, ClientStats, ClientInvestmentStats } from '../../types/client';
 
 export default function ClientsPage() {
@@ -254,6 +258,24 @@ export default function ClientsPage() {
     }
   };
 
+  const handleExportExcel = () => {
+    try {
+      exportClientsData(clients, clientInvestmentStats, 'excel');
+    } catch (error) {
+      console.error('Erro ao exportar Excel:', error);
+      alert('Erro ao exportar dados para Excel. Tente novamente.');
+    }
+  };
+
+  const handleExportCSV = () => {
+    try {
+      exportClientsData(clients, clientInvestmentStats, 'csv');
+    } catch (error) {
+      console.error('Erro ao exportar CSV:', error);
+      alert('Erro ao exportar dados para CSV. Tente novamente.');
+    }
+  };
+
   if (authLoading || isLoading) {
     return <AuthLoadingScreen text="Carregando clientes..." />;
   }
@@ -321,10 +343,30 @@ export default function ClientsPage() {
                   />
                 </div>
               </div>
-              <Button variant="outline" className="flex items-center space-x-2">
-                <Filter className="w-4 h-4" />
-                <span>Filtros Avançados</span>
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex items-center space-x-2">
+                  <Filter className="w-4 h-4" />
+                  <span>Filtros Avançados</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleExportExcel}
+                  className="flex items-center space-x-2"
+                  title="Exportar para Excel"
+                >
+                  <Table className="w-4 h-4" />
+                  <span>Excel</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleExportCSV}
+                  className="flex items-center space-x-2"
+                  title="Exportar para CSV"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>CSV</span>
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

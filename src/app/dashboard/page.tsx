@@ -127,11 +127,6 @@ export default function DashboardPage() {
                   Gerenciar Movimentações
                 </Button>
               </Link>
-              <Link href="/movements/analytics">
-                <Button variant="outline" className="w-full">
-                  Analytics de Cash Flow
-                </Button>
-              </Link>
             </CardContent>
           </Card>
         </div>
