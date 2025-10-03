@@ -10,22 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   ArrowLeft,
   Building2,
-  Calendar,
   Globe,
   BarChart3,
-  Edit,
   Trash2,
   TrendingUp
 } from 'lucide-react';
 import { adaptedAssetService } from '../../../services/adaptedAssetService';
-
-interface Asset {
-  id: number;
-  ticker: string;
-  name: string;
-  exchange: string;
-  currency: string;
-}
+import type { Asset } from '../../../types/investment';
 
 export default function AssetDetailsPage() {
   const params = useParams();
@@ -65,9 +56,9 @@ export default function AssetDetailsPage() {
   const handleDelete = async () => {
     if (!asset) return;
     
-    if (confirm(`Tem certeza que deseja excluir o asset ${asset.ticker}?`)) {
+    if (confirm(`Tem certeza que deseja excluir o asset ${asset.symbol}?`)) {
       try {
-        await adaptedAssetService.deleteAsset(asset.id);
+        await adaptedAssetService.deleteAsset(parseInt(asset.id));
         router.push('/assets');
       } catch (err) {
         console.error('Erro ao excluir asset:', err);
@@ -123,15 +114,9 @@ export default function AssetDetailsPage() {
                 </Button>
               </Link>
               <div className="flex items-center space-x-3">
-                <h1 className="text-3xl font-bold text-gray-900">{asset.ticker}</h1>
+                <h1 className="text-3xl font-bold text-gray-900">{asset.symbol}</h1>
               </div>
             </div>            <div className="flex items-center space-x-2">
-              <Link href={`/assets/${asset.id}/edit`}>
-                <Button variant="outline" size="sm">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Editar
-                </Button>
-              </Link>
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -162,7 +147,7 @@ export default function AssetDetailsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-500">Ticker</label>
-                    <p className="text-lg font-semibold">{asset.ticker}</p>
+                    <p className="text-lg font-semibold">{asset.symbol}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Nome</label>
@@ -188,31 +173,16 @@ export default function AssetDetailsPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Calendar className="w-5 h-5 mr-2" />
-                  Informações de Sistema
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">ID do Asset</label>
-                  <p className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">{asset.id}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
                 <CardTitle>Ações Rápidas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Link href={`/assets/new?assetId=${asset.id}`} className="block">
+                <Link href="/assets/allocations/new" className="block">
                   <Button className="w-full">
                     <TrendingUp className="w-4 h-4 mr-2" />
                     Fazer Investimento
                   </Button>
                 </Link>
-                <Link href={`/movements?asset=${asset.ticker}`} className="block">
+                <Link href={`/movements?asset=${asset.symbol}`} className="block">
                   <Button variant="outline" className="w-full">
                     <BarChart3 className="w-4 h-4 mr-2" />
                     Ver Movimentações

@@ -68,12 +68,20 @@ export default function AssetsPage() {
                 Gerencie os ativos disponíveis para investimentos
               </p>
             </div>
-            <Link href="/assets/new">
-              <Button className="flex items-center space-x-2">
-                <Plus className="w-4 h-4" />
-                <span>Novo Ativo</span>
-              </Button>
-            </Link>
+            <div className="flex space-x-3">
+              <Link href="/assets/allocations">
+                <Button variant="outline" className="flex items-center space-x-2">
+                  <PieChart className="w-4 h-4" />
+                  <span>Alocações</span>
+                </Button>
+              </Link>
+              <Link href="/assets/new">
+                <Button className="flex items-center space-x-2">
+                  <Plus className="w-4 h-4" />
+                  <span>Novo Ativo</span>
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -193,7 +201,7 @@ export default function AssetsPage() {
                         </div>
                         <div>
                           <p><span className="font-medium">Bolsa:</span> {asset.exchange || 'N/A'}</p>
-                          <p><span className="font-medium">ID:</span> {asset.id}</p>
+                          <p><span className="font-medium">Tipo:</span> {asset.type}</p>
                         </div>
                       </div>
                     </div>
@@ -204,7 +212,7 @@ export default function AssetsPage() {
                           <Eye className="w-4 h-4" />
                         </Button>
                       </Link>
-                      <Link href={`/assets/new?assetId=${asset.id}`}>
+                      <Link href={`/assets/allocations/new`}>
                         <Button size="sm">
                           Investir
                         </Button>
