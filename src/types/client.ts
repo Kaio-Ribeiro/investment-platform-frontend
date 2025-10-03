@@ -117,6 +117,15 @@ export interface ClientStats {
   averagePortfolioValue: number;
 }
 
+// Client investment statistics for listing
+export interface ClientInvestmentStats {
+  client_id: string;
+  total_allocations: number;
+  total_invested: number;
+  net_balance: number; // Total invested minus withdrawals
+  last_investment_date?: string;
+}
+
 // Client with assets relationship
 export interface ClientWithAssets extends Client {
   totalInvested: number;
