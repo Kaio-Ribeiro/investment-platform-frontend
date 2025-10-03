@@ -14,13 +14,10 @@ import {
   User, 
   Phone, 
   Mail, 
-  MapPin, 
   CreditCard, 
   TrendingUp, 
   Calendar,
-  Target,
-  Shield,
-  Wallet
+  Shield
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -116,15 +113,6 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
     );
   };
 
-  const getExperienceLabel = (experience?: string) => {
-    const labels = {
-      beginner: 'Iniciante',
-      intermediate: 'Intermediário',
-      advanced: 'Avançado',
-    };
-    return labels[experience as keyof typeof labels] || 'Não informado';
-  };
-
   if (authLoading || isLoading) {
     return <AuthLoadingScreen text="Carregando cliente..." />;
   }
@@ -192,15 +180,15 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Dados Pessoais */}
+          {/* Dados Pessoais e Contato */}
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="w-5 h-5" />
-                Dados Pessoais
+                Dados Pessoais e Contato
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-500">Nome Completo</label>
@@ -229,6 +217,32 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
                     </p>
                   </div>
                 )}
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Email</label>
+                  <p className="text-gray-900 flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    {client.contact.email}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Telefone</label>
+                  <p className="text-gray-900 flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    {client.contact.phone}
+                  </p>
+                </div>
+                {client.contact.mobile && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Celular</label>
+                    <p className="text-gray-900">{client.contact.mobile}</p>
+                  </div>
+                )}
+                {client.contact.whatsapp && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">WhatsApp</label>
+                    <p className="text-gray-900">{client.contact.whatsapp}</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -254,117 +268,6 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
                   {getInvestmentProfileBadge(client.investmentProfile)}
                 </div>
               </div>
-              {client.riskTolerance && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Tolerância ao Risco</label>
-                  <p className="text-gray-900">{client.riskTolerance}/10</p>
-                </div>
-              )}
-              <div>
-                <label className="text-sm font-medium text-gray-500">Experiência</label>
-                <p className="text-gray-900">{getExperienceLabel(client.investmentExperience)}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Contato */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Phone className="w-5 h-5" />
-                Contato
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-500">Email</label>
-                <p className="text-gray-900 flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  {client.contact.email}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Telefone</label>
-                <p className="text-gray-900 flex items-center gap-2">
-                  <Phone className="w-4 h-4" />
-                  {client.contact.phone}
-                </p>
-              </div>
-              {client.contact.mobile && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Celular</label>
-                  <p className="text-gray-900">{client.contact.mobile}</p>
-                </div>
-              )}
-              {client.contact.whatsapp && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">WhatsApp</label>
-                  <p className="text-gray-900">{client.contact.whatsapp}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Endereço */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
-                Endereço
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-gray-900">
-                {client.address.street}, {client.address.number}
-              </p>
-              {client.address.complement && (
-                <p className="text-gray-600">{client.address.complement}</p>
-              )}
-              <p className="text-gray-900">
-                {client.address.neighborhood}
-              </p>
-              <p className="text-gray-900">
-                {client.address.city}, {client.address.state}
-              </p>
-              <p className="text-gray-600">
-                CEP: {client.address.zipCode}
-              </p>
-              <p className="text-gray-600">
-                {client.address.country}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Informações Financeiras */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wallet className="w-5 h-5" />
-                Informações Financeiras
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-500">Renda Mensal</label>
-                <p className="text-gray-900">{formatCurrency(client.monthlyIncome)}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Patrimônio Líquido</label>
-                <p className="text-gray-900">{formatCurrency(client.netWorth)}</p>
-              </div>
-              {client.investmentGoals && client.investmentGoals.length > 0 && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Objetivos de Investimento</label>
-                  <div className="mt-2 space-y-1">
-                    {client.investmentGoals.map((goal, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Target className="w-3 h-3 text-blue-600" />
-                        <span className="text-sm text-gray-900">{goal}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
 
