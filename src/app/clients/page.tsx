@@ -13,8 +13,6 @@ import {
   Search, 
   Filter, 
   Users, 
-  TrendingUp, 
-  DollarSign,
   Eye,
   Edit,
   Trash2,
@@ -22,13 +20,16 @@ import {
   UserX
 } from 'lucide-react';
 import { clientService } from '../../services/adaptedClientService';
-import type { Client, ClientStats } from '../../types/client';
+import { clientInvestmentService } from '../../services/clientInvestmentService';
+import type { Client, ClientStats, ClientInvestmentStats } from '../../types/client';
 
 export default function ClientsPage() {
   const { isLoading: authLoading } = useRequireAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [stats, setStats] = useState<ClientStats | null>(null);
+  const [clientInvestmentStats, setClientInvestmentStats] = useState<Map<string, ClientInvestmentStats>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingInvestmentStats, setIsLoadingInvestmentStats] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -88,19 +89,47 @@ export default function ClientsPage() {
           
           // Calculate real stats from all client data
           const allClients = allClientsData?.items || [];
-          const total = allClients.length;
-          const active = allClients.filter(client => client.status === 'active').length;
-          const prospects = allClients.filter(client => client.status === 'prospect').length;
           
-          const realStats: ClientStats = {
-            total: total,
-            active: active,
-            prospects: prospects,
-            totalInvestments: 0, // We don't have investment data yet
-            averagePortfolioValue: 0 // We don't have portfolio data yet
-          };
-          
-          setStats(realStats);
+          // Load investment statistics for displayed clients
+          setIsLoadingInvestmentStats(true);
+          try {
+            const clientIds = clientsData.items.map(client => client.id);
+            const investmentStatsMap = await clientInvestmentService.getMultipleClientInvestmentStats(clientIds);
+            setClientInvestmentStats(investmentStatsMap);
+            
+            // Calculate basic client statistics (no need for global investment stats)
+            const total = allClients.length;
+            const active = allClients.filter(client => client.status === 'active').length;
+            const prospects = allClients.filter(client => client.status === 'prospect').length;
+            
+            const realStats: ClientStats = {
+              total: total,
+              active: active,
+              prospects: prospects,
+              totalInvestments: 0, // Not needed anymore
+              averagePortfolioValue: 0 // Not needed anymore
+            };
+            
+            setStats(realStats);
+          } catch (investmentError) {
+            console.error('Error loading investment statistics:', investmentError);
+            // Continue with basic stats even if investment stats fail
+            const total = allClients.length;
+            const active = allClients.filter(client => client.status === 'active').length;
+            const prospects = allClients.filter(client => client.status === 'prospect').length;
+            
+            const basicStats: ClientStats = {
+              total: total,
+              active: active,
+              prospects: prospects,
+              totalInvestments: 0,
+              averagePortfolioValue: 0
+            };
+            
+            setStats(basicStats);
+          } finally {
+            setIsLoadingInvestmentStats(false);
+          }
         } else {
           // Se não temos dados válidos, usar dados mock
           setClients([]);
@@ -252,58 +281,23 @@ export default function ClientsPage() {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Card */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card>
+          <div className="flex justify-center mb-8">
+            <Card className="w-full max-w-sm">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-lg font-medium">Clientes Cadastrados</CardTitle>
+                <Users className="h-6 w-6 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.total}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stats.active} ativos
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Prospects</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.prospects}</div>
-                <p className="text-xs text-muted-foreground">
-                  Potenciais clientes
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Investimentos</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.totalInvestments}</div>
-                <p className="text-xs text-muted-foreground">
-                  Total de aplicações
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Patrimônio Médio</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency(stats.averagePortfolioValue)}</div>
-                <p className="text-xs text-muted-foreground">
-                  Por cliente
-                </p>
+                <div className="text-4xl font-bold text-center">{stats.total}</div>
+                <div className="flex justify-center space-x-4 mt-3 text-sm text-muted-foreground">
+                  <span>{stats.active} ativos</span>
+                  <span>•</span>
+                  <span>{stats.prospects} prospects</span>
+                  <span>•</span>
+                  <span>{stats.total - stats.active - stats.prospects} inativos</span>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -384,13 +378,35 @@ export default function ClientsPage() {
                         {getInvestmentProfileBadge(client.investmentProfile)}
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600">
                         <div>
                           <p><span className="font-medium">CPF:</span> {client.cpf}</p>
                           <p><span className="font-medium">Email:</span> {client.contact.email}</p>
                         </div>
                         <div>
                           <p><span className="font-medium">Telefone:</span> {client.contact.phone}</p>
+                        </div>
+                        <div>
+                          {isLoadingInvestmentStats ? (
+                            <p className="text-gray-400">Carregando...</p>
+                          ) : (
+                            <>
+                              <p><span className="font-medium">Investimentos:</span> {clientInvestmentStats.get(client.id)?.total_allocations || 0}</p>
+                              <p><span className="font-medium">Valor Investido:</span> {formatCurrency(clientInvestmentStats.get(client.id)?.total_invested || 0)}</p>
+                            </>
+                          )}
+                        </div>
+                        <div>
+                          {isLoadingInvestmentStats ? (
+                            <p className="text-gray-400">Carregando...</p>
+                          ) : (
+                            <>
+                              <p><span className="font-medium">Patrimônio:</span> {formatCurrency(clientInvestmentStats.get(client.id)?.net_balance || 0)}</p>
+                              {clientInvestmentStats.get(client.id)?.last_investment_date && (
+                                <p><span className="font-medium">Último Investimento:</span> {new Date(clientInvestmentStats.get(client.id)!.last_investment_date!).toLocaleDateString('pt-BR')}</p>
+                              )}
+                            </>
+                          )}
                         </div>
                       </div>
 
