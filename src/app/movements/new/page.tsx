@@ -175,7 +175,7 @@ export default function NewMovementPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
+                      <SelectItem key={client.id} value={client.id?.toString() || `client-${client.name}`}>
                         {client.name} - {client.contact.email}
                       </SelectItem>
                     ))}

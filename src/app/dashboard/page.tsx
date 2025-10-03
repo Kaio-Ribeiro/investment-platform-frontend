@@ -65,7 +65,7 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader>
               <CardTitle>Clientes</CardTitle>
@@ -73,7 +73,7 @@ export default function DashboardPage() {
                 Gerencie seus clientes e suas informações
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-2">
               <Link href="/clients">
                 <Button className="w-full">
                   Gerenciar Clientes
@@ -89,10 +89,26 @@ export default function DashboardPage() {
                 Visualize e gerencie ativos financeiros
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-2">
               <Link href="/assets">
                 <Button className="w-full">
                   Gerenciar Ativos
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Alocações</CardTitle>
+              <CardDescription>
+                Gerencie alocações de ativos por cliente
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Link href="/assets/allocations">
+                <Button className="w-full">
+                  Gerenciar Alocações
                 </Button>
               </Link>
             </CardContent>
